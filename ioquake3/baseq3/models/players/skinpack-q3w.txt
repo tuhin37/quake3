@@ -1,0 +1,42 @@
+Quake3world Skinpack
+By Chemical Burn
+6:44 AM 1/7/2001
+
+Contact:
+chemicalburn@planetquake.com
+
+
+Homepage:
+http://www.planetquake.com/baneforge
+
+****************************************
+Models Used: DOOM, Visor, Slash and Crash.
+Time Taken: About four weeks, even though the
+Visor ones are all very drastic variations of
+Cold Fusion. 
+
+Tools: Photoshop 6.0 and Q3ASE.
+
+How To Use: Drag and drop all the pk3's into /baseq3.
+
+Credits: id software and Kenneth Scott (their artist).
+****************************************
+
+NOTES:
+
+Basically, this was to be a 'Christmas' skinpack for the folks at www.quake3world.com that wanted some skins. 
+But, as all projects go, sometimes it gets longer than intended. I have also made it so these skins are separate 
+.pk3's so if there's one a particular person doesn't want to use, all they have to do is delete it.
+
+Included Skins:
+
+1. Visor- Cold Fusion (Honorable Mention Winner in the 'Skin My Ash' contest on PlanetQuake) My current personal skin.
+2. Visor- Heresy (for Grandpa Stu)
+3. Visor- Death Knight (for Vikingo)
+4. DOOM- Massive Deth (for SiCDeth)
+5. Slash- GoaGrrl (For GoaGrrl...duh)
+6. Crash- Isis (for SumJackass's girlfriend)
+
+
+
+

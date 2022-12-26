@@ -1,0 +1,1 @@
+quake3 +set listen 2 +set fs_game excessive +set vm_game 1 +bot_enable 0 +set sv_maxclients 16 +set sv_hostname "Excessive Server" +exec maplist.cfg +fraglimit 40 +set g_motd "Mr. Pants' EXCESSIVE Overkill for Quake III" +set sv_pure 0
