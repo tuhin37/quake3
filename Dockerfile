@@ -53,7 +53,9 @@ COPY --chown=ioq3srv ioquake3/missionpack/pak*.pk3 /usr/local/games/quake3/missi
 USER ioq3srv
 EXPOSE 27960/udp
 
-CMD ["/usr/local/games/quake3/ioq3ded.x86_64", "+exec", "server.cfg", "+exec", "levels.cfg", "+exec", "bots.cfg",  "+seta", "rconPassword", "d405" ]
+# CMD ["/usr/local/games/quake3/ioq3ded.x86_64", "+exec", "server.cfg", "+exec", "levels.cfg", "+exec", "bots.cfg",  "+seta", "rconPassword", "d405" ]
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000"]
 
 
 # Note: capture these as docker environment variables. Default ram:128, default port 27960 (UDP)

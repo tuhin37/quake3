@@ -158,3 +158,9 @@ services:
 ```
 
 Then run `docker-compose up -d` in the directory holding the compose file, and the Quake 3 server will start up. You can stop the server at any point using `docker-compose down`, and resume it again with your stored configuration by re-running `docker-compose up -d`.
+
+
+Run the python server by 
+```sh
+uvicorn app.main:app --host 0.0.0.0 --port 5000
+```
