@@ -43,7 +43,7 @@ async def sanity():
 @default_router.post("/set_game")
 async def set_game(settings: Expected):
     settings_file = create_file(settings)
-    GameExecutor(settings_file).run_game()
+    GameExecutor().run_game(settings_file)
     return JSONResponse(settings.dict())
 
 

@@ -37,7 +37,7 @@ class SystemCaller(metaclass=SingletonMeta):
         else:
             comm = str(command)
         try:
-            print('Running command:: {}'.format(comm))
+            print("Running command:: {}".format(comm))
             self.val = subprocess.check_output(
                 comm,
                 stderr=subprocess.STDOUT,
@@ -47,7 +47,7 @@ class SystemCaller(metaclass=SingletonMeta):
             output = self.val
             ran_cmd = comm
             actual_code = 0
-            print('Got output:: {}'.format(output))
+            print("Got output:: {}".format(output))
         except subprocess.CalledProcessError as err:
             ret = False
             ran_cmd = comm

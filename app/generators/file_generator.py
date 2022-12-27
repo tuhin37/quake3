@@ -6,7 +6,7 @@ import os
 def create_file(expected: Expected):
     """this will create and return the paths to the files"""
     folder_name = "/usr/local/games/quake3/baseq3/"
-    name = str(uuid7()) + '.cfg'
+    name = str(uuid7()) + ".cfg"
     expected_file_name = os.path.join(folder_name, name)
     file_contents = f"""
     seta bot_enable {expected.bot_enable}
