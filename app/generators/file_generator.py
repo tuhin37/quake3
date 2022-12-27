@@ -5,9 +5,9 @@ import os
 
 def create_file(expected: Expected):
     """this will create and return the paths to the files"""
-    folder_name = "./target/files/" + str(uuid7()) + "/"
-    os.makedirs(folder_name)
-    expected_file_name = os.path.join(folder_name, "expected.cfg")
+    folder_name = "/usr/local/games/quake3/baseq3/"
+    name = str(uuid7()) + '.cfg'
+    expected_file_name = os.path.join(folder_name, name)
     file_contents = f"""
     seta bot_enable {expected.bot_enable}
 seta bot_nochat {expected.bot_nochat}    
@@ -46,4 +46,4 @@ seta cl_packetdup "{expected.packetdup}"
     """
     with open(expected_file_name, "w") as writer:
         writer.write(file_contents)
-    return os.path.abspath(expected_file_name)
+    return name

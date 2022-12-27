@@ -48,18 +48,22 @@ ADD --chown=ioq3srv files/ /usr/local/games/quake3/
 COPY --chown=ioq3srv config/*.cfg /usr/local/games/quake3/baseq3/
 COPY --chown=ioq3srv ioquake3/baseq3/pak*.pk3 /usr/local/games/quake3/baseq3/
 COPY --chown=ioq3srv ioquake3/missionpack/pak*.pk3 /usr/local/games/quake3/missionpack/
-
+RUN mkdir -p /code/target
+RUN chown -R ioq3srv:ioq3srv /code
 
 USER ioq3srv
 EXPOSE 27960/udp
+
+ENV PATH="$PATH:/home/ioq3srv/.local/bin"
 
 RUN pip3 install --upgrade pip
 
 WORKDIR /code
 
+
 COPY ./requirements.txt /code/requirements.txt
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+RUN pip3 install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./app /code/app
 
