@@ -33,7 +33,7 @@ converter[gameType_reg] = {"FFA": 0, "Tourney": 1, "TD": 3, "CTF": 4}
 
 
 def setter(name, regex_checker, nameof):
-    print('{} checking value {}'.format(nameof, name))
+    print("{} checking value {}".format(nameof, name))
     val = regex_checker.match(name)
     if val:
         got_str = val.group()
@@ -42,7 +42,7 @@ def setter(name, regex_checker, nameof):
                 return converter[regex_checker][got_str]
             return str(got_str)
     else:
-        print('Invalid parameter for {}'.format(nameof))
+        print("Invalid parameter for {}".format(nameof))
         raise ValueError("Invalid parameter: {}".format(nameof))
 
 
@@ -74,11 +74,11 @@ class Expected(BaseModel):
 
     class Config:
         validate_assignment = True
-    
+
     @validator("api_key", pre=True)
     def set_api_key(cls, api_key):
-        if api_key != os.getenv('API_KEY'):
-            raise ValueError('Invalid API Key')
+        if api_key != os.getenv("API_KEY"):
+            raise ValueError("Invalid API Key")
         return api_key
 
     @validator("name", pre=True)

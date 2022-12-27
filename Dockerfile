@@ -18,6 +18,7 @@ ARG PYTHON_VERSION=3.9.9
 ARG IOQUAKE3_COMMIT="unknown"
 LABEL "Maintainer" "Florian Piesche <florian@yellowkeycard.net>"
 
+
 # install build dependencies and needed tools
 RUN apk add \
     wget \
@@ -39,7 +40,6 @@ RUN cd /opt/Python-${PYTHON_VERSION} \
     && make install \
     && rm /opt/Python-${PYTHON_VERSION}.tgz /opt/Python-${PYTHON_VERSION} -rf
 
-
 ENV IOQUAKE3_COMMIT ${IOQUAKE3_COMMIT}
 
 RUN adduser ioq3srv -D
@@ -52,6 +52,16 @@ COPY --chown=ioq3srv ioquake3/missionpack/pak*.pk3 /usr/local/games/quake3/missi
 
 USER ioq3srv
 EXPOSE 27960/udp
+
+RUN pip3 install --upgrade pip
+
+WORKDIR /code
+
+COPY ./requirements.txt /code/requirements.txt
+
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+
+COPY ./app /code/app
 
 # CMD ["/usr/local/games/quake3/ioq3ded.x86_64", "+exec", "server.cfg", "+exec", "levels.cfg", "+exec", "bots.cfg",  "+seta", "rconPassword", "d405" ]
 

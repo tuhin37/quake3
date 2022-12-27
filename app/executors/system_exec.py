@@ -1,34 +1,55 @@
 """ this will run the system commands """
 import subprocess
-from typing import List
+import traceback
+from typing import List, Any
 
-from app.executors import SystemResult
+from app.executors import SystemResult, SingletonMeta
 
 
-class SystemCaller(object):
+class SystemCaller(metaclass=SingletonMeta):
     """this class will handle the actual system call"""
 
-    def __init__(self) -> None:
-        pass
+    __running_instance = None
 
-    def execute(self, command: List, check_ret: bool = True) -> SystemResult:
+    def __init__(self) -> None:
+        self.val = None
+
+    def execute(
+        self,
+        command: Any,
+    ) -> SystemResult:
         """this will execute the command and return whether that command was successful or not"""
+        if self.val:
+            try:
+                self.val.terminate()
+            except Exception as exp:
+                print(
+                    "Got {} error trying to terminate:: \n{}".format(
+                        str(exp), traceback.format_exception()
+                    )
+                )
         ret = True
         output = ""
         output_err = ""
         actual_code = 0
+        if isinstance(command, List):
+            comm = " ".join(command)
+        else:
+            comm = str(command)
         try:
-            val = subprocess.run(command, capture_output=True, check=check_ret)
-            ret = val.returncode == 0
-            output = val.stdout
-            output_err = val.stderr
-            actual_code = val.returncode
+            self.val = subprocess.check_output(
+                comm,
+                stderr=subprocess.STDOUT,
+                shell=True,
+            )
+            ret = True
+            output = self.val
+            ran_cmd = comm
+            actual_code = 0
         except subprocess.CalledProcessError as err:
             ret = False
-            output_err = err.stderr
-            output = err.stdout
-            actual_code = err.returncode
-        res = SystemResult(
-            ret, output.decode("ascii"), output_err.decode("ascii"), actual_code
-        )
+            ran_cmd = comm
+            output = str(err.output)
+            actual_code = int(err.returncode)
+        res = SystemResult(ret, output, ran_cmd, actual_code)
         return res
