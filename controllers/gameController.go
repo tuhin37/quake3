@@ -2,6 +2,8 @@ package gameController
 
 import (
 	"bufio"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -51,6 +53,15 @@ func GetStatus(c *gin.Context) {
 	mapName := strings.TrimRight(strings.SplitN(lines[0], " ", int(5))[3], ";")
 
 	c.JSON(http.StatusOK, gin.H{"autoexec": autoexecMap, "server": serverMap, "bots": botsMap, "map": mapName})
+}
+
+// updates the config files and restart / start the game
+func UpdateGame(c *gin.Context) {
+	jsonData, _ := ioutil.ReadAll(c.Request.Body)
+	// if err != nil {
+	// 	// Handle error
+	// }
+	fmt.Println(string(jsonData))
 }
 
 // --------------------------- internal functions ---------------------------------
