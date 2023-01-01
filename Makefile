@@ -11,3 +11,6 @@ exec:
 
 delete: 
 	./delete-image.sh
+
+go:
+	go run main.go
