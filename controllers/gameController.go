@@ -145,52 +145,12 @@ func UpdateGame(c *gin.Context) {
 
 }
 
+func DefaultGame(c *gin.Context) {
+	// TODO restore default values
+
+}
+
 // --------------------------- internal functions ---------------------------------
-func executeSH(script string) {
-	cmd := exec.Command(script)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Fatalf("ERROR: script %s failed with err: %s", script, err)
-	}
-}
-
-// reads a text file line by line and returns a slice of string
-func readFileLines(filename string) []string {
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatalf("[ERROR] | file open failed | %s | error | %s", filename, err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanLines)
-	var lines []string
-	for scanner.Scan() {
-		if scanner.Text() == "" {
-			continue
-		}
-		lines = append(lines, scanner.Text())
-	}
-	return lines
-}
-
-func line2map(lines []string) map[string]interface{} {
-	/*
-		input: ["set vm_game 2", "set vm_cgame 2", "set vm_ui 2", ...]
-		output: { "vm_game": 2, "vm_cgame": 2, "et vm_ui": 2 ...}
-	*/
-	obj := map[string]interface{}{}
-	var NUM_OF_LINE_SEGMENTS uint8 = 4
-	for _, line := range lines {
-		if string(line[0]) == "#" || string(line[0]) == "/" || string(line[0]) == " " { // exclude any line that start with '/ 'or '#', or ' ' as they are comments or line breaks
-			continue
-		}
-		obj[strings.SplitN(line, " ", int(NUM_OF_LINE_SEGMENTS))[1]] = strings.Trim(strings.SplitN(line, " ", int(NUM_OF_LINE_SEGMENTS))[2], "\"") // key = 2nd word; value = 3rd word
-	}
-	return obj
-}
 
 func updateConfigFiles(game *Game) {
 	// game is the structure that has all the data received from API
@@ -266,20 +226,13 @@ func updateConfigFiles(game *Game) {
 			}
 
 			if fieldName == "g_gametype" {
-				fmt.Println("---------------------------")
-				fmt.Println(fieldName)
-				fmt.Println(gameServerMap[fieldName])
-				fmt.Println(currentValue)
-				fmt.Println(newValue)
-
 				// comment the current active block
 				switch currentValue { // Currently active is CTF
-				case "4":
-					if newValue == "CTF" {
+				case "4": // this means currently CTF is active
+					if newValue == "CTF" { // so if the new request is also for CTF then skip commenting
 						break
 					}
-
-					for lineIndex := 10; lineIndex <= 15; lineIndex++ {
+					for lineIndex := 10; lineIndex <= 15; lineIndex++ { //comment specific lines for CTF fame
 						commentLine("./config/server1.cfg", uint16(lineIndex))
 					}
 				case "0":
@@ -300,11 +253,11 @@ func updateConfigFiles(game *Game) {
 
 				// uncomment the new block based on gametype
 				switch gameServerMap[fieldName] {
-				case "FFA":
-					if currentValue == "0" {
+				case "FFA": // if user request for FFA as new fame type
+					if currentValue == "0" { // if the current selected game type is also FFA then skip uncommenting
 						break
 					}
-					for i := 25; i <= 27; i++ {
+					for i := 25; i <= 27; i++ { // otherwise uncomment the FFA lines
 						uncommentLine("./config/server1.cfg", uint16(i))
 					}
 				case "CTF":
@@ -331,10 +284,12 @@ func updateConfigFiles(game *Game) {
 
 	// update levels1.cfg file ---------------------------------------------------------------------------------------------
 	// raed levels.cfg
-	lines = readFileLines("./config/levels1.cfg") // lines is a slice of string, each element is one line the text file1
-	currentMapName := strings.TrimRight(strings.SplitN(lines[0], " ", int(5))[3], ";")
-	searchAndReplaceTextFile("./config/levels1.cfg", fmt.Sprintf("set dm1 \"map %s", currentMapName), fmt.Sprintf("set dm1 \"map %s", game.Map))
+	lines = readFileLines("./config/levels1.cfg")                                                                                                // lines is a slice of string, each element is one line the text file1
+	currentMapName := strings.TrimRight(strings.SplitN(lines[0], " ", int(5))[3], ";")                                                           // read the current map name
+	searchAndReplaceTextFile("./config/levels1.cfg", fmt.Sprintf("set dm1 \"map %s", currentMapName), fmt.Sprintf("set dm1 \"map %s", game.Map)) // over write the current map
 }
+
+// ------------------------------------------ HELPER FUNCTIONS --------------------------------------------------
 
 func searchAndReplaceTextFile(filename string, search string, replace string) bool {
 	// this function performs a search-and-replace operation on a text file.
@@ -437,6 +392,7 @@ func commentLine(fileName string, lineNumber uint16) {
 		log.Fatalln(err)
 	}
 }
+
 func uncommentLine(fileName string, lineNumber uint16) {
 	// create file handler
 	input, err := ioutil.ReadFile(fileName)
@@ -460,4 +416,50 @@ func uncommentLine(fileName string, lineNumber uint16) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func executeSH(script string) {
+	cmd := exec.Command(script)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("ERROR: script %s failed with err: %s", script, err)
+	}
+}
+
+// reads a text file line by line and returns a slice of string
+func readFileLines(filename string) []string {
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatalf("[ERROR] | file open failed | %s | error | %s", filename, err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var lines []string
+	for scanner.Scan() {
+		if scanner.Text() == "" {
+			continue
+		}
+		lines = append(lines, scanner.Text())
+	}
+	return lines
+}
+
+func line2map(lines []string) map[string]interface{} {
+	/*
+		input: ["set vm_game 2", "set vm_cgame 2", "set vm_ui 2", ...]
+		output: { "vm_game": 2, "vm_cgame": 2, "et vm_ui": 2 ...}
+	*/
+	obj := map[string]interface{}{}
+	var NUM_OF_LINE_SEGMENTS uint8 = 4
+	for _, line := range lines {
+		if string(line[0]) == "#" || string(line[0]) == "/" || string(line[0]) == " " { // exclude any line that start with '/ 'or '#', or ' ' as they are comments or line breaks
+			continue
+		}
+		obj[strings.SplitN(line, " ", int(NUM_OF_LINE_SEGMENTS))[1]] = strings.Trim(strings.SplitN(line, " ", int(NUM_OF_LINE_SEGMENTS))[2], "\"") // key = 2nd word; value = 3rd word
+	}
+	return obj
 }

@@ -32,6 +32,8 @@ func main() {
 	r.GET("/start", gameController.StartServer)
 	r.GET("/status", gameController.GetStatus) // curl --location --request GET '43.204.235.64:5000/status'
 	r.PUT("/update", gameController.UpdateGame)
+	r.GET("/default", gameController.DefaultGame)
+
 	r.Run(":5000")
 	fmt.Println("main ends")
 }
