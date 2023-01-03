@@ -4,3 +4,5 @@ do
     echo $VARIABLE
     sleep 60
 done
+
+exit 0

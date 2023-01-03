@@ -130,3 +130,4 @@ dmypy.json
 
 # Ignore Dockerfile, we will generate Dockerfile via make
 Dockerfile
+.env

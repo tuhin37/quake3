@@ -11,9 +11,20 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+// fath to cfg files
+var AUTOEXEC_CFG string = "./config/autoexec.cfg"
+var BOTS_CFG string = "./config/bots.cfg"
+var LEVELS_CFG string = "./config/levels.cfg"
+var SERVER_CFG string = "./config/server.cfg"
+var RUN_SERVER string = "./shellScripts/RunServer.sh"
+var KILL_SERVER string = "/shellScripts/killServer.sh"
+var RESTORE_CFG string = "./shellScripts/RestoreConfigs.sh"
+var IS_RUNNING string = "./shellScripts/IsRunning.sh"
 
 type Game struct {
 	Autoexec Autoexec `json:"autoexec"`
@@ -66,10 +77,21 @@ type Server struct {
 
 // starts the server
 func StartServer(c *gin.Context) {
-	// async call
-	go executeSH("./shellScripts/RunServer.sh")
+	isRunning := executeSHOut(IS_RUNNING)
+	if isRunning == "running" {
+		c.AsciiJSON(http.StatusOK, gin.H{
+			"message": "server already running", // cast it to string before showing
+		})
+		return
+	}
+
+	cmd := exec.Command(RUN_SERVER)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	go cmd.Run()
+
 	c.AsciiJSON(http.StatusOK, gin.H{
-		"code":    http.StatusOK,
 		"message": "server started", // cast it to string before showing
 	})
 }
@@ -78,13 +100,25 @@ func StartServer(c *gin.Context) {
 func GetStatus(c *gin.Context) {
 	// Reads all the config files and parses the parameters in json and returns to user
 
+	// bearer token validation
+	isValid := validateToken(c)
+	if !isValid {
+		return
+	}
+	// check if the game is running
+	output, err := exec.Command(IS_RUNNING).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	isRunning := strings.TrimRight(string(output), "\n")
+
 	// read autoexec.cfg
-	lines := readFileLines("./config/autoexec.cfg") // lines is a slice of string, each element is one line the text file
-	autoexecMap := line2map(lines)                  // converts lines into key value pair
+	lines := readFileLines(AUTOEXEC_CFG) // lines is a slice of string, each element is one line the text file
+	autoexecMap := line2map(lines)       // converts lines into key value pair
 
 	// raed server.cfg
-	lines = readFileLines("./config/server.cfg") // lines is a slice of string, each element is one line the text file
-	serverMap := line2map(lines)                 // converts lines into key value pair
+	lines = readFileLines(SERVER_CFG) // lines is a slice of string, each element is one line the text file
+	serverMap := line2map(lines)      // converts lines into key value pair
 	// convert gametype from code to string
 	switch serverMap["g_gametype"] {
 	case "4":
@@ -98,32 +132,26 @@ func GetStatus(c *gin.Context) {
 	}
 
 	// raed bots.cfg
-	lines = readFileLines("./config/bots.cfg") // lines is a slice of string, each element is one line the text file
-	botsMap := line2map(lines)                 // converts lines into key value pair
+	lines = readFileLines(BOTS_CFG) // lines is a slice of string, each element is one line the text file
+	botsMap := line2map(lines)      // converts lines into key value pair
 
 	// raed levels.cfg
-	lines = readFileLines("./config/levels.cfg") // lines is a slice of string, each element is one line the text file1
+	lines = readFileLines(LEVELS_CFG) // lines is a slice of string, each element is one line the text file1
 	mapName := strings.TrimRight(strings.SplitN(lines[0], " ", int(5))[3], ";")
 
-	c.JSON(http.StatusOK, gin.H{"autoexec": autoexecMap, "server": serverMap, "bots": botsMap, "map": mapName})
+	c.JSON(http.StatusOK, gin.H{"status": isRunning, "map": mapName, "server": serverMap, "bots": botsMap, "autoexec": autoexecMap})
 }
 
 // updates the config files and restart / start the game
 func UpdateGame(c *gin.Context) {
 
-	// check barer token, return if not authorized
-	// bearerToken := c.Request.Header.Get("Authorization")
-	// bearerToken = strings.TrimPrefix(bearerToken, "Bearer ")
-	// if bearerToken != "70B9VW8igFT1lZSxVd22w9HOPz6DQu7Y" {
-	// 	c.JSON(http.StatusUnauthorized, gin.H{"msg": "Invalid token"})
-	// 	return
-	// }
+	// bearer token validation
 	isValid := validateToken(c)
 	if !isValid {
 		return
 	}
 	// create game object
-	game := Game{}
+	game := Game{} // This will hold all the received data
 	// initialize game object with default values, to differentiate prestine state
 	initializeGameObject(&game) // this initializes all the variables in the obhect with a non zero default value (uint8 <  0xFF, uint16 <- 0xFFFF, string <- ""). As zero can be a valid inputy
 
@@ -134,31 +162,61 @@ func UpdateGame(c *gin.Context) {
 		return
 	}
 
-	// update bots1.cfg
+	// update the config files
 	updateConfigFiles(&game)
-	// if game.Bots  {
-	// 	fmt.Println("here")
-	// }
-	// searchAndReplaceTextFile("./config/bots1.cfg", "g_spskill 4", "g_spskill 5")
+	// restart the game if asked
+	isRestart := c.Query("restart")
+
+	// if api requests for a restart
+	if isRestart == "true" {
+		if !restartServer() {
+			isRunning := executeSHOut(IS_RUNNING)
+			c.AsciiJSON(http.StatusInternalServerError, gin.H{
+				"message": fmt.Sprintf("updated but, could not restart server. server currently left %s", strings.ToUpper(isRunning)), // cast it to string before showing
+			})
+		}
+	}
 
 	c.JSON(http.StatusAccepted, &game)
-
 }
 
-func DefaultGame(c *gin.Context) {
-	// TODO restore default values
+func RestoreDefault(c *gin.Context) {
+	executeSH(RESTORE_CFG) // async call
+	c.AsciiJSON(http.StatusOK, gin.H{
+		"message": "config restored", // cast it to string before showing
+	})
+}
 
+func StopServer(c *gin.Context) {
+	isRunning := executeSHOut(IS_RUNNING)
+	if isRunning == "stopped" {
+		c.AsciiJSON(http.StatusOK, gin.H{
+			"message": "server was not running", // cast it to string before showing
+		})
+		return
+	}
+	stopServer()
+	isRunning = executeSHOut(IS_RUNNING)
+	if isRunning == "stopped" {
+		c.AsciiJSON(http.StatusOK, gin.H{
+			"message": "server stopped", // cast it to string before showing
+		})
+		return
+	}
+
+	c.AsciiJSON(http.StatusInternalServerError, gin.H{
+		"message": "server stop failed", // cast it to string before showing
+	})
 }
 
 // --------------------------- internal functions ---------------------------------
-
 func updateConfigFiles(game *Game) {
 	// game is the structure that has all the data received from API
 
 	// update bots.cfg file----------------------------------------------------------------------------------------------
 	// read bots.cfg file to know the current values. The current values are required for search and replace operation
-	lines := readFileLines("./config/bots1.cfg") // lines is a slice of string, each element is one line the text file
-	botsMap := line2map(lines)                   // keys and values are string variable
+	lines := readFileLines(BOTS_CFG) // lines is a slice of string, each element is one line the text file
+	botsMap := line2map(lines)       // keys and values are string variable
 
 	// convert game.bot object into gameBotMap
 	var gameBotMap map[string]interface{}
@@ -173,14 +231,14 @@ func updateConfigFiles(game *Game) {
 		if gameBotMap[fieldName] != 0xFF && currentValue != newValue { // if the field value is received in POST body and if old value (in .cfg file) is different than the new value received
 
 			// 											   [                   bot_enable   1          ]  [                   bot_enable   0                   ]
-			searchAndReplaceTextFile("./config/bots1.cfg", fmt.Sprintf("%s %s", fieldName, currentValue), fmt.Sprintf("%s %v", fieldName, gameBotMap[fieldName])) // This actually updates the file
+			SearchAndReplaceTextFile(BOTS_CFG, fmt.Sprintf("%s %s", fieldName, currentValue), fmt.Sprintf("%s %v", fieldName, gameBotMap[fieldName])) // This actually updates the file
 		}
 	}
 
 	// update autoexec.efg file ---------------------------------------------------------------------------------------------
 	// read autoexec.cfg file to know the current values. The current values are required for search and replace operation
-	lines = readFileLines("./config/autoexec1.cfg") // lines is a slice of string, each element is one line the text file
-	autoexecMap := line2map(lines)                  // keys and values are string variable
+	lines = readFileLines(AUTOEXEC_CFG) // lines is a slice of string, each element is one line the text file
+	autoexecMap := line2map(lines)      // keys and values are string variable
 
 	// convert game.autoexec object into a map
 	var gameAutoexectMap map[string]interface{}
@@ -195,14 +253,14 @@ func updateConfigFiles(game *Game) {
 		if gameAutoexectMap[fieldName] != 0xFF && currentValue != newValue { // if the field value is received in POST body and if old value (in .cfg file) is different than the new value received
 
 			// 											   [                   bot_enable   1          ]  [                   bot_enable   0                   ]
-			searchAndReplaceTextFile("./config/autoexec1.cfg", fmt.Sprintf("%s %s", fieldName, currentValue), fmt.Sprintf("%s %v", fieldName, gameAutoexectMap[fieldName]))
+			SearchAndReplaceTextFile(AUTOEXEC_CFG, fmt.Sprintf("%s %s", fieldName, currentValue), fmt.Sprintf("%s %v", fieldName, gameAutoexectMap[fieldName]))
 		}
 	}
 
 	// update server.cfg file ---------------------------------------------------------------------------------------------
 	// read server.cfg file to know the current values. The current values are required for search and replace operation
-	lines = readFileLines("./config/server1.cfg") // lines is a slice of string, each element is one line the text file
-	serverMap := line2map(lines)                  // keys and values are string variable
+	lines = readFileLines(SERVER_CFG) // lines is a slice of string, each element is one line the text file
+	serverMap := line2map(lines)      // keys and values are string variable
 
 	// convert game.server object into a map
 	var gameServerMap map[string]interface{}
@@ -233,21 +291,21 @@ func updateConfigFiles(game *Game) {
 						break
 					}
 					for lineIndex := 10; lineIndex <= 15; lineIndex++ { //comment specific lines for CTF fame
-						commentLine("./config/server1.cfg", uint16(lineIndex))
+						commentLine(SERVER_CFG, uint16(lineIndex))
 					}
 				case "0":
 					if newValue == "FFA" {
 						break
 					}
 					for lineIndex := 25; lineIndex <= 27; lineIndex++ {
-						commentLine("./config/server1.cfg", uint16(lineIndex))
+						commentLine(SERVER_CFG, uint16(lineIndex))
 					}
 				case "3":
 					if newValue == "TD" {
 						break
 					}
 					for lineIndex := 18; lineIndex <= 22; lineIndex++ {
-						commentLine("./config/server1.cfg", uint16(lineIndex))
+						commentLine(SERVER_CFG, uint16(lineIndex))
 					}
 				}
 
@@ -258,40 +316,40 @@ func updateConfigFiles(game *Game) {
 						break
 					}
 					for i := 25; i <= 27; i++ { // otherwise uncomment the FFA lines
-						uncommentLine("./config/server1.cfg", uint16(i))
+						uncommentLine(SERVER_CFG, uint16(i))
 					}
 				case "CTF":
 					if currentValue == "4" {
 						break
 					}
 					for i := 10; i <= 15; i++ {
-						uncommentLine("./config/server1.cfg", uint16(i))
+						uncommentLine(SERVER_CFG, uint16(i))
 					}
 				case "TD":
 					if currentValue == "3" {
 						break
 					}
 					for i := 18; i <= 22; i++ {
-						uncommentLine("./config/server1.cfg", uint16(i))
+						uncommentLine(SERVER_CFG, uint16(i))
 					}
 				}
 				continue
 			}
 			// 		                                      bot_enable 1  bot_enable   0
-			searchAndReplaceTextFile("./config/server1.cfg", searchStr, replaceStr)
+			SearchAndReplaceTextFile(SERVER_CFG, searchStr, replaceStr)
 		}
 	}
 
 	// update levels1.cfg file ---------------------------------------------------------------------------------------------
 	// raed levels.cfg
-	lines = readFileLines("./config/levels1.cfg")                                                                                                // lines is a slice of string, each element is one line the text file1
-	currentMapName := strings.TrimRight(strings.SplitN(lines[0], " ", int(5))[3], ";")                                                           // read the current map name
-	searchAndReplaceTextFile("./config/levels1.cfg", fmt.Sprintf("set dm1 \"map %s", currentMapName), fmt.Sprintf("set dm1 \"map %s", game.Map)) // over write the current map
+	lines = readFileLines(LEVELS_CFG)                                                                                                // lines is a slice of string, each element is one line the text file1
+	currentMapName := strings.TrimRight(strings.SplitN(lines[0], " ", int(5))[3], ";")                                               // read the current map name
+	SearchAndReplaceTextFile(LEVELS_CFG, fmt.Sprintf("set dm1 \"map %s", currentMapName), fmt.Sprintf("set dm1 \"map %s", game.Map)) // over write the current map
 }
 
 // ------------------------------------------ HELPER FUNCTIONS --------------------------------------------------
 
-func searchAndReplaceTextFile(filename string, search string, replace string) bool {
+func SearchAndReplaceTextFile(filename string, search string, replace string) bool {
 	// this function performs a search-and-replace operation on a text file.
 
 	// read text file
@@ -361,7 +419,8 @@ func validateToken(c *gin.Context) bool {
 	// This function validates the baerer token
 	bearerToken := c.Request.Header.Get("Authorization")
 	bearerToken = strings.TrimPrefix(bearerToken, "Bearer ")
-	if bearerToken != "70B9VW8igFT1lZSxVd22w9HOPz6DQu7Y" { // TODO read this value from environment variale
+	serverToken := os.Getenv("TOKEN")
+	if bearerToken != serverToken {
 		c.JSON(http.StatusUnauthorized, gin.H{"msg": "Invalid token"})
 		return false
 	}
@@ -419,9 +478,11 @@ func uncommentLine(fileName string, lineNumber uint16) {
 }
 
 func executeSH(script string) {
+
 	cmd := exec.Command(script)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalf("ERROR: script %s failed with err: %s", script, err)
@@ -462,4 +523,56 @@ func line2map(lines []string) map[string]interface{} {
 		obj[strings.SplitN(line, " ", int(NUM_OF_LINE_SEGMENTS))[1]] = strings.Trim(strings.SplitN(line, " ", int(NUM_OF_LINE_SEGMENTS))[2], "\"") // key = 2nd word; value = 3rd word
 	}
 	return obj
+}
+
+func executeSHOut(script string) string {
+	// This function executes a shell script, returns the string output of the script.
+	output, err := exec.Command(script).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	isRunning := strings.TrimRight(string(output), "\n")
+	return isRunning
+}
+
+func restartServer() bool {
+	// check if the game is running
+	isRunning := executeSHOut(IS_RUNNING)
+	if isRunning == "running" {
+		if !stopServer() { // return false if server can not be stopped
+			return false
+		}
+	}
+
+	go executeSH(RUN_SERVER)
+	return executeSHOut(IS_RUNNING) == "running"
+}
+
+func stopServer() bool {
+	// check if the game is running
+	isRunning := executeSHOut(IS_RUNNING)
+
+	// try killing untill stopped
+	attempts := 0
+	for isRunning == "running" {
+		executeSH(KILL_SERVER)
+		isRunning = executeSHOut(IS_RUNNING)
+		// guard clause
+		if isRunning == "stopped" {
+			continue
+		}
+		// gime time to die
+		attempts++
+		if attempts >= 5 {
+			fmt.Println("error | server stop failed")
+			return false
+		}
+		time.Sleep(1 * time.Second)
+	}
+	fmt.Println("success | server stopped")
+	return true
+}
+
+func RestoreDefaultConfigs() {
+	executeSH(RESTORE_CFG) // async call
 }
