@@ -1,7 +1,7 @@
-# Build the game in a base container
-FROM alpine:3.17.0 AS builder
-LABEL "Maintainer" "Florian Piesche <florian@yellowkeycard.net>"
+# # STAGE1---------------Build the game in a base container
+FROM golang:1.18-alpine as builder
 
+# build q3a dedicated server
 ENV SERVERBIN ioq3ded
 ENV BUILD_CLIENT 0
 
@@ -11,35 +11,49 @@ RUN \
   cd /ioq3 && \
   make && \
   make copyfiles
-#  ----------------------------------------------------------------------
-# Copy the game files from the builder container to a new image to minimise size
-FROM alpine:3.17.0 AS ioq3srv
-LABEL "Maintainer" "Florian Piesche <florian@yellowkeycard.net>"
 
+
+
+# copy the build q3a dedicated server to /app
+WORKDIR /app
+RUN mkdir -p /app/quake3
+RUN cp -r /usr/local/games/quake3/* ./quake3
+COPY ioquake3/baseq3/pak*.pk3 ./quake3/baseq3/
+COPY ioquake3/missionpack/pak*.pk3 ./quake3/missionpack/
+
+# Download necessary Go modules
+COPY go.mod ./
+COPY go.sum ./
+COPY main.go .
+COPY controllers ./controllers
+COPY shellScripts ./shellScripts
+COPY config ./config
+COPY .env ./
+RUN go mod tidy
+RUN go mod vendor 
+RUN go build -mod=vendor 
+RUN rm -r controllers/ go.mod go.sum  main.go vendor/
+
+
+#  STAGE3--------------final
+FROM alpine:3.17.0 AS imager
+LABEL "Maintainer" "Tuhin Sengupta <tuhin3737@gnail.com>"
+
+
+RUN apk add --no-cache procps
 
 RUN adduser ioq3srv -D
-COPY --chown=ioq3srv --from=builder /usr/local/games/quake3 /usr/local/games/quake3/
-COPY --chown=ioq3srv config/*.cfg /usr/local/games/quake3/baseq3/
-COPY --chown=ioq3srv ioquake3/baseq3/pak*.pk3 /usr/local/games/quake3/baseq3/
-COPY --chown=ioq3srv ioquake3/missionpack/pak*.pk3 /usr/local/games/quake3/missionpack/
-
+# copy the quick3 server from the previous stage
+COPY --chown=ioq3srv --from=builder /app /app
+RUN cp /app/config/* /app/quake3/baseq3
+RUN rm -r /app/config
+WORKDIR /app
 
 USER ioq3srv
 EXPOSE 27960/udp
+EXPOSE 5000/tcp
 
-ENV PATH="$PATH:/home/ioq3srv/.local/bin"
+CMD ["/app/Q3AServer"]
+# /app/quake3/ioq3ded.x86_64 +exec /app/config/server.cfg +exec /app/config/levels.cfg +exec /app/config/bots.cfg +sta rconPassword d405
 
-
-
-
-
-CMD ["/usr/local/games/quake3/ioq3ded.x86_64", "+exec", "server.cfg", "+exec", "levels.cfg", "+exec", "bots.cfg",  "+seta", "rconPassword", "d405" ]
-
-# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000"]
-
-
-# Note: capture these as docker environment variables. Default ram:128, default port 27960 (UDP)
-# ram
-# port
-# password {used in CMD line}
-# API access key
+# "/usr/local/games/quake3/ioq3ded.x86_64", "+exec", "server.cfg", "+exec", "levels.cfg", "+exec", "bots.cfg",  "+seta", "rconPassword", "d405" 
