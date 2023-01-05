@@ -17,14 +17,14 @@ import (
 )
 
 // fath to cfg files
-var AUTOEXEC_CFG string = "/app/quake3/baseq3/autoexec.cfg"
-var BOTS_CFG string = "/app/quake3/baseq3/bots.cfg"
-var LEVELS_CFG string = "/app/quake3/baseq3/levels.cfg"
-var SERVER_CFG string = "/app/quake3/baseq3/server.cfg"
-var RUN_SERVER string = "/app/shellScripts/RunServer.sh"
-var KILL_SERVER string = "/app/shellScripts/killServer.sh"
-var RESTORE_CFG string = "/app/shellScripts/RestoreConfigs.sh"
-var IS_RUNNING string = "/app/shellScripts/IsRunning.sh"
+var AUTOEXEC_CFG string = "./quake3/baseq3/autoexec.cfg"
+var BOTS_CFG string = "./quake3/baseq3/bots.cfg"
+var LEVELS_CFG string = "./quake3/baseq3/levels.cfg"
+var SERVER_CFG string = "./quake3/baseq3/server.cfg"
+var RUN_SERVER string = "./shellScripts/RunServer.sh"
+var KILL_SERVER string = "./shellScripts/killServer.sh"
+var RESTORE_CFG string = "./shellScripts/RestoreConfigs.sh"
+var IS_RUNNING string = "./shellScripts/IsRunning.sh"
 
 type Game struct {
 	Autoexec Autoexec `json:"autoexec"`
