@@ -1,8 +1,0 @@
-{
-	map "JJM2"
-	bots		""
-      longname	"Jump jump madness 2"
-      fraglimit	60
-      type		"ffa"
-
-}

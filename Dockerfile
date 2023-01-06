@@ -14,8 +14,8 @@ RUN \
 
 # copy the build q3a dedicated server to /app
 WORKDIR /app
-RUN mkdir -p /app/quake3
-RUN cp -r /usr/local/games/quake3/* ./quake3
+RUN mkdir -p /app/ioquake3
+RUN cp -r /usr/local/games/quake3/* ./ioquake3
 
 
 # Build the go server
@@ -43,9 +43,9 @@ WORKDIR /app
 COPY --chown=ioq3srv --from=builder /app /app
 
 # copy pk3, cfg, sh files to the container from local
-COPY --chown=ioq3srv ioquake3/baseq3/pak*.pk3 /app/quake3/baseq3/
-COPY --chown=ioq3srv ioquake3/missionpack/pak*.pk3 /app/quake3/missionpack/
-COPY --chown=ioq3srv config /app/quake3/baseq3
+COPY --chown=ioq3srv ioquake3/baseq3/*.pk3 /app/ioquake3/baseq3/
+COPY --chown=ioq3srv ioquake3/missionpack/*.pk3 /app/ioquake3/missionpack/
+COPY --chown=ioq3srv config /app/config
 COPY --chown=ioq3srv shellScripts /app/shellScripts
 
 # switch user

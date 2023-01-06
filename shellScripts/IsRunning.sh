@@ -1,6 +1,6 @@
 #! /bin/sh 
 
-PID=$(ps -aux |grep "/bin/sh /app/shellScripts/RunServer.sh" |grep -v grep |sed -e's/  */ /g' |cut -d " " -f 2)
+PID=$(ps -aux |grep -v grep |grep RunServer |sed -e's/  */ /g' |cut -d " " -f 2)
 
 if [ "$PID" = "" ]; then
     echo "stopped"

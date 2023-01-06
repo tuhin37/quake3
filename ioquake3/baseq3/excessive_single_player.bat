@@ -1,1 +1,0 @@
-quake3 +set fs_game excessive +set vm_game 1

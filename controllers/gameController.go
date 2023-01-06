@@ -17,10 +17,10 @@ import (
 )
 
 // fath to cfg files
-var AUTOEXEC_CFG string = "./quake3/baseq3/autoexec.cfg"
-var BOTS_CFG string = "./quake3/baseq3/bots.cfg"
-var LEVELS_CFG string = "./quake3/baseq3/levels.cfg"
-var SERVER_CFG string = "./quake3/baseq3/server.cfg"
+var AUTOEXEC_CFG string = "./ioquake3/baseq3/autoexec.cfg"
+var BOTS_CFG string = "./ioquake3/baseq3/bots.cfg"
+var LEVELS_CFG string = "./ioquake3/baseq3/levels.cfg"
+var SERVER_CFG string = "./ioquake3/baseq3/server.cfg"
 var RUN_SERVER string = "./shellScripts/RunServer.sh"
 var KILL_SERVER string = "./shellScripts/killServer.sh"
 var RESTORE_CFG string = "./shellScripts/RestoreConfigs.sh"
@@ -279,8 +279,16 @@ func updateConfigFiles(game *Game) {
 
 			// special case where i will have to add quote '"' around the values
 			if fieldName == "sv_hostname" || fieldName == "g_motd" || fieldName == "rconpassword" || fieldName == "rate" || fieldName == "snaps" || fieldName == "cl_maxpackets" || fieldName == "cl_packetdup" { // special case where the values are quoted ("") in the cfg file
+				fmt.Println("-------------------------------")
+				fmt.Printf("%s : %s\n", fieldName, currentValue)
+
 				searchStr = fmt.Sprintf("%s \"%s\"", fieldName, currentValue)              // add the extra quote around the value
 				replaceStr = fmt.Sprintf("%s \"%v\"", fieldName, gameServerMap[fieldName]) // add the extra quote around the value
+
+				fmt.Println(searchStr)
+				fmt.Println("")
+				fmt.Println(replaceStr)
+				fmt.Println("-.-.-.-.-.-.--.-.-.-.")
 			}
 
 			if fieldName == "g_gametype" {

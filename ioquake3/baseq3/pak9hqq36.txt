@@ -1,8 +1,0 @@
-This is High Quality Quake 3 [HQQ3]
-For Point Release 1.32
-
-Version: 3.6 - 20170822
-File:    pak9hqq36.pk3
-Authour: ZerTerO
-www:     www.zertero.de
-Q3Keys:  237abcdghjlprstw

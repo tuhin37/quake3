@@ -1,6 +1,6 @@
 // general server info
-seta sv_hostname "Q3A CTF"      // name that appears in server list
-seta g_motd "Hard CTF 24/7"     // message that appears when connecting
+seta sv_hostname "NIGGIS"       // name that appears in server list
+seta g_motd "Welcome"           // message that appears when connecting
 seta sv_maxclients 16           // max number of clients than can connect
 seta sv_pure 1                  // pure server, no altered pak files
 seta g_quadfactor 4             // quad damage strength (3 is normal)

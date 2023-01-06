@@ -1,9 +1,0 @@
-#! /bin/bash
-
-i=0
-while [ true ]
-do
-    echo "FAKE SERVER RUNNING ... $i" 
-    ((i=i+1))
-    sleep .5
-done
