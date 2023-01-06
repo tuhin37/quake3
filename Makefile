@@ -18,10 +18,14 @@ exec:
 	./makeScripts/exec.sh
 
 
-
 # stop the running container
 stop:
 	./makeScripts/stop-container.sh
+
+
+# push docker image to dockerhub
+push:
+	docker push fidays/quake3:latest
 
 
 # delete docker image
