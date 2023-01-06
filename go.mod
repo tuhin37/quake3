@@ -1,4 +1,4 @@
-module github.com/Binayaka/Q3AServer
+module github.com/tuhin37/quake3
 
 go 1.18
 

@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	gameController "github.com/Binayaka/Q3AServer/controllers"
+	gameController "github.com/tuhin37/quake3/controllers"
 
 	"github.com/gin-gonic/gin"
 )

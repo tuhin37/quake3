@@ -32,3 +32,8 @@ delete:
 # run go server
 go:
 	go run main.go
+
+
+#  build go
+build-go:
+	./makeScripts/build-go.sh
