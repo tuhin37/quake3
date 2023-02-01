@@ -2,7 +2,9 @@
 
 
 
-## 1. Build Docker Image
+## 1. Docker Image
+
+build
 
 ```shell
 make build
@@ -16,7 +18,7 @@ make build-prod
 
 
 
-#### 2. Run docker image
+### 2. Run docker image
 
 ```shell
 make run
