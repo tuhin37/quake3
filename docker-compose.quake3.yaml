@@ -10,10 +10,10 @@ services:
       - "5000:5000/tcp"
       - "27960:27960/udp"
     environment:
-      - RAM=512
+      - RAM=128
       - PORT=27960
       - PASSWORD=password
-      - TOKEN=token
+      - TOKEN=70B9VW8igFT1lZSxVd22w9HOPz6DQu7Y
     
 
 # to Run

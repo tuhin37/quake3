@@ -54,4 +54,4 @@ EXPOSE 27960/udp
 EXPOSE 5000/tcp
 
 # Run go server
-CMD ["/app/Q3AServer"]
+CMD ["/app/quake3"]
