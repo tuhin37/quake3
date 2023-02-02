@@ -561,5 +561,5 @@ kubectl apply -f quake3.yaml
 or
 
 ```sh
-kubectl apply -f 
+kubectl apply -f https://raw.githubusercontent.com/tuhin37/quake3/drag/quake3.yaml?token=GHSAT0AAAAAABZ67GQRNEGMDXE4JQVNCZTCY63RJTQ
 ```
