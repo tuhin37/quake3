@@ -1,7 +1,5 @@
 # Quake3 Server
 
-
-
 ## 1. Docker Image
 
 build
@@ -15,8 +13,6 @@ or
 ```shell
 make build-prod
 ```
-
-
 
 ### 2. Run docker image
 
@@ -37,8 +33,6 @@ This uses the following default parameters
     console-password: `password`
 
     bearer-token: `70B9VW8igFT1lZSxVd22w9HOPz6DQu7Y`
-
-
 
 ___
 
@@ -100,8 +94,6 @@ response
 }
 ```
 
-
-
 ### 3.2 /start
 
 request
@@ -109,8 +101,6 @@ request
 ```shell
 curl --location --request GET 'localhost:5000/start'
 ```
-
-
 
 response
 
@@ -127,8 +117,6 @@ or
     "message": "server already running"
 }
 ```
-
-
 
 ### 3.3 /stop
 
@@ -147,8 +135,6 @@ or
     "message": "server was not running"
 }
 ```
-
-
 
 ### 3.4 /update
 
@@ -248,8 +234,6 @@ response
 }
 ```
 
-
-
 example for longest yeard the request will be
 
 ```sh
@@ -348,8 +332,6 @@ response
 }
 ```
 
-
-
 ### 3.5 /restore
 
 This method restores the default configs
@@ -370,8 +352,6 @@ response
 }
 ```
 
-
-
 ___
 
 ## 4. Make commands
@@ -384,8 +364,6 @@ If a dontainer is running then this command will find that container and exec in
 make exec
 ```
 
-
-
 ### 4.2 stop
 
 This command will stop a running quake3 container. If no containers were running then this will not output any error
@@ -393,8 +371,6 @@ This command will stop a running quake3 container. If no containers were running
 ```sh
 make stop
 ```
-
-
 
 ### 4.3 push
 
@@ -404,8 +380,6 @@ This command will push the locally built docker image to dockerhub under fidats 
 make push
 ```
 
-
-
 ### 4.4 delete
 
 This command finds out the image ID for quake3 and deletes that image from local filesystem. 
@@ -413,8 +387,6 @@ This command finds out the image ID for quake3 and deletes that image from local
 ```sh
 make delete
 ```
-
-
 
 ### 4.5 go
 
@@ -449,13 +421,9 @@ Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-
 [GIN-debug] Listening and serving HTTP on :5000
 ```
 
-
-
 ### 4.6 build-go
 
 This command compiles the go code into a single binary. The final binary is generated in to root of the project directory and it will be named `quake3`. 
-
-
 
 build
 
@@ -490,10 +458,6 @@ SH | configs restored
 Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
 [GIN-debug] Listening and serving HTTP on :5000
 ```
-
-
-
-
 
 ___
 
@@ -592,4 +556,10 @@ spec:
 
 ```sh
 kubectl apply -f quake3.yaml
+```
+
+or
+
+```sh
+kubectl apply -f 
 ```
