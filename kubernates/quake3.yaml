@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: quake3
+  labels:
+    name: quake3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quake3-web
+  namespace: quake3
+spec:
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: quake3
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quake3-game
+  namespace: quake3
+spec:
+  ports:
+  - name: game
+    port: 27960
+    protocol: UDP
+    targetPort: 27960
+  selector:
+    app: quake3
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: quake3
+  namespace: quake3
+spec:
+  selector:
+    matchLabels:
+      app: quake3
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: quake3
+    spec:
+      containers:
+      - name: quake3
+        image: fidays/quake3:latest
+        env:
+          - name: RAM
+            value: "128"
+          - name: PORT
+            value: "27960"
+          - name: PASSWORD
+            value: "password"
+          - name: TOKEN
+            value: "70B9VW8igFT1lZSxVd22w9HOPz6DQu7Y"
+        ports:
+        - containerPort: 5000
+          name: wev
+          protocol: TCP
+        - containerPort: 27960
+          name: game
+          protocol: TCP
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "512Mi"
+            cpu: "1000m"
+      nodeSelector:
+        kubernetes.io/hostname: w3-vm
