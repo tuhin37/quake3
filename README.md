@@ -26,6 +26,14 @@ or
 docker run --rm --name quake3 -p 5000:5000/tcp -p 27960:27960/udp --env RAM=128 --env PORT=27960 --env PASSWORD=password --env TOKEN=70B9VW8igFT1lZSxVd22w9HOPz6DQu7Y -it fidays/quake3
 ```
 
+or
+
+```shell
+docker-compose -f docker-compose/docker-compose.quake3.yaml up
+```
+
+
+
 This uses the following default parameters
 
      name: `quake3`

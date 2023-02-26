@@ -1,0 +1,17 @@
+version: "2.1"
+services:
+  quake3:
+    image: fidays/quake3:latest
+    container_name: quake3
+    environment:
+      - RAM=128
+      - PORT=27960
+      - PASSWORD=password
+      - TOKEN=70B9VW8igFT1lZSxVd22w9HOPz6DQu7Y
+    ports:
+    - 5000:5000/tcp
+    - 27960:27960/udp
+    restart: unless-stopped
+
+
+# docker compose -f docker-compose.quake3.yaml up
